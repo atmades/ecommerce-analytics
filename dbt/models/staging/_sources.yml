@@ -1,0 +1,71 @@
+version: 2
+
+sources:
+  - name: raw
+    database: "{{ env_var('GCP_PROJECT_ID') }}"
+    schema: dataset_raw
+    description: "Сырые данные Olist загруженные из CSV через ingestion-скрипты"
+
+    tables:
+      - name: orders
+        description: "Заказы. Владелец: ingestion pipeline. Обновляется ежедневно."
+        columns:
+          - name: order_id
+            description: "UUID заказа. PK."
+            data_tests:
+              - not_null
+              - unique
+          - name: customer_id
+            description: "UUID клиента. FK → customers."
+            data_tests:
+              - not_null
+          - name: order_status
+            data_tests:
+              - not_null
+              - accepted_values:
+                  values: ['delivered','shipped','canceled','invoiced',
+                           'processing','approved','unavailable','created']
+          - name: order_purchase_timestamp
+            data_tests:
+              - not_null
+
+      - name: order_items
+        description: "Позиции заказов."
+        columns:
+          - name: order_id
+            tests: [not_null]
+          - name: order_item_id
+            tests: [not_null]
+          - name: price
+            tests: [not_null]
+
+      - name: customers
+        description: "Клиенты. Содержит PII."
+        columns:
+          - name: customer_id
+            tests: [not_null, unique]
+
+      - name: sellers
+        columns:
+          - name: seller_id
+            tests: [not_null, unique]
+
+      - name: products
+        columns:
+          - name: product_id
+            tests: [not_null, unique]
+
+      - name: order_payments
+        columns:
+          - name: order_id
+            tests: [not_null]
+
+      - name: reviews
+        columns:
+          - name: order_id
+            tests: [not_null]
+
+      - name: product_categories
+        columns:
+          - name: product_category_name
+            tests: [not_null, unique]

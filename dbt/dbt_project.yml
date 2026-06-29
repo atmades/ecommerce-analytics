@@ -17,7 +17,10 @@ models:
   ecommerce_analytics:
     staging:
       +materialized: view
+      +schema: dataset_staging
     intermediate:
       +materialized: view
+      +schema: dataset_staging
     marts:
       +materialized: table
+      +schema: dataset_marts

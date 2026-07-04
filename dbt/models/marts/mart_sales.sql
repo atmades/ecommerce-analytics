@@ -1,13 +1,11 @@
 /*
-  mart_sales — витрина продаж.
-
-  Grain: один заказ (одна строка = один заказ).
-  Используется для: выручка по дням/категориям/регионам, операционные отчёты.
+  mart_sales — sales fact table.
+  Grain: one delivered order.
 */
 
 with orders as (
     select * from {{ ref('int_orders_enriched') }}
-    where order_status = 'delivered'   -- только завершённые заказы
+    where order_status = 'delivered'
 ),
 
 items as (
@@ -22,49 +20,36 @@ items as (
     group by order_id
 ),
 
+-- Агрегируем reviews ДО JOIN — берём среднюю оценку если отзывов несколько
 reviews as (
     select
         order_id,
-        score                       as review_score
+        round(avg(score), 1)  as review_score,
+        count(*)               as review_count
     from {{ ref('stg_reviews') }}
+    group by order_id
 ),
 
 final as (
     select
-        -- Ключи
         o.order_id,
         o.customer_id,
         o.customer_unique_id,
-
-        -- Время
         o.order_date,
         o.purchased_at,
         o.delivered_to_customer_at,
-
-        -- География
         o.customer_city,
         o.customer_state,
-
-        -- Категория
         i.primary_category,
-
-        -- Финансы
         i.items_value_brl,
         i.freight_value_brl,
         o.total_payment_brl,
-
-        -- Корзина
         i.unique_products,
-
-        -- Доставка
         o.actual_delivery_days,
         o.estimated_delivery_days,
         o.is_on_time,
-
-        -- Оценка
         r.review_score,
-
-        -- Платёж
+        r.review_count,
         o.primary_payment_type
 
     from orders o

@@ -1,0 +1,176 @@
+version: 2
+
+models:
+  - name: mart_sales
+    description: >
+      Sales fact table. Grain: one delivered order.
+      Used for revenue reporting, delivery performance, category analysis.
+    columns:
+      - name: order_id
+        description: "Unique order identifier. PK."
+        data_tests:
+          - not_null
+          - unique
+      - name: customer_id
+        description: "Customer identifier. FK → mart_customers."
+        data_tests:
+          - not_null
+      - name: order_date
+        description: "Date of purchase (no time component)."
+        data_tests:
+          - not_null
+      - name: total_payment_brl
+        description: "Total amount paid in BRL including freight."
+        data_tests:
+          - not_null
+      - name: primary_category
+        description: "Primary product category in English."
+      - name: actual_delivery_days
+        description: "Days from purchase to delivery. Null if not yet delivered."
+      - name: is_on_time
+        description: "True if delivered on or before estimated date."
+      - name: review_score
+        description: "Customer review score 1-5. Nullable."
+
+
+  - name: mart_customers
+    description: >
+      Customer dimension with RFM segmentation and lifetime metrics.
+      Grain: one unique customer (customer_unique_id).
+      Note: uses customer_unique_id, not customer_id — one person may have
+      multiple customer_ids in Olist.
+    columns:
+      - name: customer_unique_id
+        description: "True unique customer identifier. PK."
+        data_tests:
+          - not_null
+          - unique
+      - name: total_orders
+        description: "Number of delivered orders."
+        data_tests:
+          - not_null
+      - name: ltv_brl
+        description: "Lifetime value in BRL (sum of all delivered orders)."
+        data_tests:
+          - not_null
+      - name: rfm_segment
+        description: "RFM segment: champion, loyal, at_risk, hibernating, new, lost."
+        data_tests:
+          - not_null
+          - accepted_values:
+              values: ['champion', 'loyal', 'at_risk', 'hibernating', 'new', 'lost']
+      - name: r_score
+        description: "Recency score 1-4. Higher = more recent."
+        data_tests:
+          - not_null
+      - name: days_since_last_order
+        description: "Days elapsed since last delivered order."
+        data_tests:
+          - not_null
+
+
+  - name: mart_cohorts
+    description: >
+      Cohort retention analysis. Grain: cohort_month × months_since_first_order.
+      Shows what % of customers from each cohort returned in subsequent months.
+    columns:
+      - name: cohort_month
+        description: "Month of first order for this cohort. YYYY-MM-01 format."
+        data_tests:
+          - not_null
+      - name: months_since_first_order
+        description: "0 = month of first order, 1 = next month, etc."
+        data_tests:
+          - not_null
+      - name: cohort_size
+        description: "Total unique customers in this cohort."
+        data_tests:
+          - not_null
+      - name: retained_customers
+        description: "Customers from cohort active in this period."
+        data_tests:
+          - not_null
+      - name: retention_rate_pct
+        description: "retained_customers / cohort_size * 100."
+        data_tests:
+          - not_null
+
+
+  - name: mart_sellers
+    description: >
+      Seller performance dimension. Grain: one seller.
+      Used for seller rating system and quality monitoring.
+    columns:
+      - name: seller_id
+        description: "Unique seller identifier. PK."
+        data_tests:
+          - not_null
+          - unique
+      - name: total_orders
+        description: "Number of delivered orders fulfilled by this seller."
+        data_tests:
+          - not_null
+      - name: total_revenue_brl
+        description: "Total revenue in BRL across all orders."
+        data_tests:
+          - not_null
+      - name: avg_review_score
+        description: "Average customer review score 1-5."
+      - name: on_time_delivery_rate_pct
+        description: "% of orders delivered on or before estimated date."
+
+
+  - name: mart_price_history
+    description: >
+      MercadoLibre product price history built on SCD Type 2 snap_products.
+      Grain: one row per product per price period (product_id + valid_from).
+      Each price change creates a new row.
+    columns:
+      - name: product_id
+        description: "MercadoLibre product ID."
+        data_tests:
+          - not_null
+      - name: price_ars
+        description: "Minimum listing price in ARS for this period. Nullable — some sellers hide price until contact."
+      - name: valid_from
+        description: "Date this price became active."
+        data_tests:
+          - not_null
+      - name: is_current
+        description: "True if this is the current active price."
+        data_tests:
+          - not_null
+      - name: price_change_direction
+        description: "first_record, increase, decrease, or unchanged."
+        data_tests:
+          - not_null
+          - accepted_values:
+              values: ['first_record', 'increase', 'decrease', 'unchanged']
+
+
+  - name: dim_date
+    description: >
+      Calendar dimension table. Grain: one row per day (2016-01-01 to 2030-12-31).
+      Includes Brazilian and Argentine holidays, weekend flags, business day flags.
+    columns:
+      - name: date_day
+        description: "The date. PK."
+        data_tests:
+          - not_null
+          - unique
+      - name: year
+        data_tests:
+          - not_null
+      - name: is_weekend
+        data_tests:
+          - not_null
+      - name: is_holiday_br
+        data_tests:
+          - not_null
+      - name: is_holiday_ar
+        data_tests:
+          - not_null
+      - name: is_business_day_br
+        data_tests:
+          - not_null
+

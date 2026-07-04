@@ -94,7 +94,7 @@ final as (
 
         -- Финансы
         s.total_orders,
-        round(s.ltv_brl, 2)             as ltv_brl,
+        coalesce(round(s.ltv_brl, 2), 0) as ltv_brl,
         round(s.avg_order_value_brl, 2) as avg_order_value_brl,
 
         -- RFM

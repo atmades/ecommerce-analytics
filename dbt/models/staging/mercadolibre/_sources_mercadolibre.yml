@@ -15,6 +15,5 @@ sources:
             data_tests:
               - not_null
           - name: min_price_ars
-            description: "Minimum listing price in ARS across all sellers."
-            data_tests:
-              - not_null
+            description: "Minimum listing price in ARS across all sellers. Nullable — some sellers hide price until contact."
+

@@ -29,7 +29,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-TODAY = date.today().isoformat()
+TODAY = sys.argv[1] if len(sys.argv) > 1 else date.today().isoformat()
 SITE_ID = "MLA"
 MAX_CATEGORIES = 5      # для учёбы берём первые 5 категорий
 MAX_PRODUCTS_PER_CATEGORY = 10  # топ-10 продуктов на категорию

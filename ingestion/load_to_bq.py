@@ -6,8 +6,8 @@ from datetime import date
 import logging
 import sys
 
-from utils.config import config
-from utils.bq_client import load_csv_from_gcs
+from ingestion.utils.config import config
+from ingestion.utils.bq_client import load_csv_from_gcs
 from utils import schemas
 
 logging.basicConfig(

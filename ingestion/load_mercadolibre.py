@@ -17,10 +17,10 @@ from pathlib import Path
 
 from google.cloud import bigquery, storage
 
-from utils.config import config
-from utils.mercadolibre_client import MercadoLibreClient
-from utils.rate_limiter import TokenBucketRateLimiter
-from utils.gcs_client import get_gcs_client
+from ingestion.utils.config import config
+from ingestion.utils.mercadolibre_client import MercadoLibreClient
+from ingestion.utils.rate_limiter import TokenBucketRateLimiter
+from ingestion.utils.gcs_client import get_gcs_client
 
 logging.basicConfig(
     level=logging.INFO,

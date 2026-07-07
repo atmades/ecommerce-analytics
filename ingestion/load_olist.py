@@ -7,8 +7,8 @@ from datetime import date
 import logging
 import sys
 
-from utils.config import config
-from utils.gcs_client import upload_file, file_exists
+from ingestion.utils.config import config
+from ingestion.utils.gcs_client import upload_file, file_exists
 
 logging.basicConfig(
     level=logging.INFO,

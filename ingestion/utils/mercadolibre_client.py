@@ -8,8 +8,8 @@ import time
 import logging
 import requests
 
-from utils.secrets import get_secret
-from utils.config import config
+from ingestion.utils.secrets import get_secret
+from ingestion.utils.config import config
 
 logger = logging.getLogger(__name__)
 

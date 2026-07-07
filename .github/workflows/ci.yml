@@ -52,20 +52,30 @@ jobs:
 
       - name: Install dbt packages
         working-directory: dbt
+        env:
+            GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
         run: dbt deps
 
       - name: dbt compile
         working-directory: dbt
+        env:
+            GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
         run: dbt compile
 
       - name: dbt test sources
         working-directory: dbt
+        env:
+            GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
         run: dbt test --select source:*
 
       - name: dbt run all models
         working-directory: dbt
+        env:
+            GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
         run: dbt run
 
       - name: dbt test all models
         working-directory: dbt
+        env:
+            GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
         run: dbt test

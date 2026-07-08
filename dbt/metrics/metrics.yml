@@ -1,0 +1,96 @@
+version: 2
+
+metrics:
+
+  - name: gross_revenue_brl
+    label: "Gross Revenue (BRL)"
+    description: >
+      Total order revenue in Brazilian Reais across all delivered orders.
+      Includes item price + freight value. Returns and cancellations excluded.
+      Source: mart_sales.total_payment_brl
+    type: simple
+    type_params:
+      measure:
+        name: total_payment_brl
+        agg: sum
+    model: ref('mart_sales')
+
+  - name: order_count
+    label: "Order Count"
+    description: >
+      Number of delivered orders. Each row in mart_sales represents
+      one delivered order. Cancelled and processing orders excluded.
+    type: simple
+    type_params:
+      measure:
+        name: order_id
+        agg: count
+    model: ref('mart_sales')
+
+  - name: avg_order_value_brl
+    label: "Average Order Value (BRL)"
+    description: >
+      Average revenue per delivered order in BRL.
+      Calculated as gross_revenue_brl / order_count.
+      Used for basket size analysis and pricing strategy.
+    type: ratio
+    type_params:
+      numerator:
+        name: gross_revenue_brl
+      denominator:
+        name: order_count
+
+  - name: avg_delivery_days
+    label: "Average Delivery Days"
+    description: >
+      Average number of days from order purchase to customer delivery.
+      Calculated only for orders with actual delivery date recorded.
+      Key operational metric for logistics performance.
+    type: simple
+    type_params:
+      measure:
+        name: actual_delivery_days
+        agg: average
+    model: ref('mart_sales')
+
+  - name: on_time_delivery_rate
+    label: "On-Time Delivery Rate"
+    description: >
+      Percentage of delivered orders that arrived on or before
+      the estimated delivery date. Range: 0-100%.
+      Key seller quality metric — used in seller rating system.
+    type: simple
+    type_params:
+      measure:
+        name: is_on_time
+        agg: average
+    model: ref('mart_sellers')
+
+  - name: monthly_retention_rate
+    label: "Monthly Retention Rate"
+    description: >
+      Percentage of customers from a cohort who placed an order
+      in a given month after their first purchase.
+      Formula: retained_customers / cohort_size * 100.
+      Key product health metric — low retention signals churn risk.
+    type: ratio
+    type_params:
+      numerator:
+        name: retained_customers
+      denominator:
+        name: cohort_size
+    model: ref('mart_cohorts')
+
+  - name: customer_ltv_brl
+    label: "Customer Lifetime Value (BRL)"
+    description: >
+      Average total revenue generated per unique customer over their
+      entire relationship with the platform. In BRL.
+      Used for customer segmentation and marketing ROI calculation.
+      Note: uses customer_unique_id to avoid counting multi-account customers twice.
+    type: simple
+    type_params:
+      measure:
+        name: ltv_brl
+        agg: average
+    model: ref('mart_customers')

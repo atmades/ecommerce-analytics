@@ -6,8 +6,8 @@ from datetime import date
 import logging
 import sys
 
-from utils.config import config
-from utils.bq_client import load_csv_from_gcs
+from ingestion.utils.config import config
+from ingestion.utils.bq_client import load_csv_from_gcs
 from utils import schemas
 
 logging.basicConfig(
@@ -17,7 +17,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-TODAY = date.today().isoformat()
+TODAY = sys.argv[1] if len(sys.argv) > 1 else date.today().isoformat()
 BUCKET = f"gs://{config.gcs_bucket}"
 
 # (gcs_folder, gcs_filename, bq_table_name, schema)

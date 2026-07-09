@@ -43,7 +43,7 @@ enriched as (
         c.state as customer_state,
 
         -- Платежи
-        p.total_payment_brl,
+        coalesce(p.total_payment_brl, 0) as total_payment_brl,
         p.payment_count,
         p.primary_payment_type,
 

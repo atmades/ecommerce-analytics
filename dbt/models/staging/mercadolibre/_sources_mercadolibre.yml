@@ -1,0 +1,19 @@
+version: 2
+
+sources:
+  - name: mercadolibre
+    database: "{{ env_var('GCP_PROJECT_ID') }}"
+    schema: dataset_raw
+    description: "Live data from MercadoLibre Argentina API. Updated daily."
+
+    tables:
+      - name: mercadolibre_products
+        description: "Product catalog with prices. Source for SCD Type 2 price tracking."
+        columns:
+          - name: product_id
+            description: "MercadoLibre product ID. PK."
+            data_tests:
+              - not_null
+          - name: min_price_ars
+            description: "Minimum listing price in ARS across all sellers. Nullable — some sellers hide price until contact."
+

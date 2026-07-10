@@ -66,6 +66,69 @@ flowchart TD
 
 **Data quality:** 38/38 tests passing ✅
 
+### Olist source schema (ERD)
+
+```mermaid
+erDiagram
+  orders {
+    string order_id PK
+    string customer_id FK
+    string order_status
+    timestamp order_purchase_timestamp
+    timestamp order_delivered_customer_date
+    timestamp order_estimated_delivery_date
+  }
+  customers {
+    string customer_id PK
+    string customer_unique_id
+    string customer_zip_code_prefix
+    string customer_city
+    string customer_state
+  }
+  order_items {
+    string order_id FK
+    int order_item_id
+    string product_id FK
+    string seller_id FK
+    float price
+    float freight_value
+  }
+  order_payments {
+    string order_id FK
+    string payment_type
+    int payment_installments
+    float payment_value
+  }
+  order_reviews {
+    string order_id FK
+    int review_score
+    string review_comment_message
+    timestamp review_creation_date
+  }
+  products {
+    string product_id PK
+    string product_category_name FK
+    float product_weight_g
+    int product_photos_qty
+  }
+  sellers {
+    string seller_id PK
+    string seller_city
+    string seller_state
+  }
+  product_category_name_translation {
+    string product_category_name PK
+    string product_category_name_english
+  }
+  orders }o--|| customers : "belongs to"
+  orders ||--o{ order_items : "contains"
+  orders ||--o{ order_payments : "paid by"
+  orders ||--o{ order_reviews : "reviewed in"
+  order_items }o--|| products : "references"
+  order_items }o--|| sellers : "fulfilled by"
+  products }o--|| product_category_name_translation : "translated in"
+```
+
 ---
 
 ## Quick Start

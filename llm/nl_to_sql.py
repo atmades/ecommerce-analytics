@@ -101,6 +101,31 @@ def log_query(question: str, sql: str, tables: list) -> None:
         print(f"Audit log warning (non-critical): {e}")
 
 
+def execute_sql(sql: str) -> list[dict] | str:
+    """
+    Executes generated SQL in BigQuery and returns results.
+    Returns list of rows as dicts, or error message string.
+    Limits to 20 rows to avoid overwhelming the terminal.
+    """
+    try:
+        from google.cloud import bigquery
+        from ingestion.utils.config import config
+
+        # Fix: wrap project_id in backticks if not already wrapped
+        # BigQuery requires backticks around project IDs containing hyphens
+        project = config.project_id
+        if f'`{project}`' not in sql and project in sql:
+            sql = sql.replace(project, f'`{project}`')
+
+        client = bigquery.Client()
+        rows = list(client.query(sql).result())
+        if not rows:
+            return "Query returned 0 rows"
+        return [dict(row) for row in rows[:20]]
+    except Exception as e:
+        return f"Execution error: {e}"
+
+
 def ask(question: str) -> dict:
     if check_pii(question):
         return {"error": "Question contains personal data. Please rephrase."}
@@ -160,6 +185,10 @@ def ask(question: str) -> dict:
         return {"error": f"SQL validation failed: {error_msg}"}
 
     log_query(question, sql, result.get("tables_used", []))
+
+    # Auto-execute SQL in BigQuery and return results
+    result["results"] = execute_sql(sql)
+
     return result
 
 
@@ -187,4 +216,13 @@ if __name__ == "__main__":
             print(f"SQL:\n{result['sql']}\n")
             print(f"Explanation: {result['explanation']}\n")
             print(f"Tables: {', '.join(result.get('tables_used', []))}\n")
+
+            results = result.get("results")
+            if isinstance(results, str):
+                print(f"Results: {results}\n")
+            elif isinstance(results, list):
+                print(f"Results ({len(results)} rows):")
+                for row in results:
+                    print(f"  {row}")
+                print()
             print("-" * 60 + "\n")

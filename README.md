@@ -66,6 +66,8 @@ flowchart TD
 
 **Data quality:** 38/38 tests passing ✅
 
+See [MercadoLibre data flow](docs/mercadolibre_data_flow.md) for API integration details and price tracking architecture.
+
 ### Olist source schema (ERD)
 
 ```mermaid

@@ -173,4 +173,24 @@ models:
       - name: is_business_day_br
         data_tests:
           - not_null
+  
+  - name: mart_customer_features
+    description: >
+      ML-ready feature store for customer churn and LTV prediction.
+      Grain: one unique customer. All features are numeric.
+      No PII fields. Target: is_churned (1 if no order in 365 days).
+    columns:
+      - name: customer_unique_id
+        description: "True unique customer identifier. Exclude from model training."
+        data_tests:
+          - not_null
+          - unique
+      - name: is_churned
+        description: "Target variable. 1 = no order in last 365 days, 0 = active."
+        data_tests:
+          - not_null
+      - name: is_at_risk
+        description: "Soft churn signal. 1 = no order in last 180 days."
+        data_tests:
+          - not_null
 

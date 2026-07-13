@@ -21,6 +21,7 @@ from ingestion.utils.config import config
 from ingestion.utils.mercadolibre_client import MercadoLibreClient
 from ingestion.utils.rate_limiter import TokenBucketRateLimiter
 from ingestion.utils.gcs_client import get_gcs_client
+from ingestion.utils.circuit_breaker import CircuitBreaker
 
 logging.basicConfig(
     level=logging.INFO,
@@ -30,8 +31,8 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 TODAY = sys.argv[1] if len(sys.argv) > 1 else date.today().isoformat()
-SITE_ID = "MLA"
-MAX_CATEGORIES = 5      # для учёбы берём первые 5 категорий
+SITE_ID = "MLA" 
+MAX_CATEGORIES = 5      # для учёбы берём первые 5 катевгорий
 MAX_PRODUCTS_PER_CATEGORY = 10  # топ-10 продуктов на категорию
 
 
@@ -62,6 +63,7 @@ def fetch_highlights(
 def fetch_product(
     client: MercadoLibreClient,
     limiter: TokenBucketRateLimiter,
+    breaker: CircuitBreaker,
     product_id: str,
     category_id: str,
     category_name: str,
@@ -69,7 +71,11 @@ def fetch_product(
     """Получаем детали продукта и минимальную цену из listings."""
     limiter.acquire()
     try:
-        product = client.get(f"/products/{product_id}")
+        product = breaker.call(
+            client.get,
+            f"/products/{product_id}",
+            fallback=None
+        )
     except Exception as e:
         logger.warning(f"Продукт {product_id} недоступен: {e}")
         return None
@@ -148,6 +154,7 @@ def main():
     logger.info("=== Старт загрузки MercadoLibre ===")
     client = MercadoLibreClient()
     limiter = TokenBucketRateLimiter(rate=600, per=60)
+    breaker = CircuitBreaker(failure_threshold=5, recovery_timeout=60)
 
     categories = fetch_categories(client)
     all_products = []
@@ -161,7 +168,7 @@ def main():
         logger.info(f"  Продуктов в highlights: {len(product_ids)}")
 
         for pid in product_ids:
-            product = fetch_product(client, limiter, pid, cat_id, cat_name)
+            product = fetch_product(client, limiter, breaker, pid, cat_id, cat_name)
             if product:
                 all_products.append(product)
 

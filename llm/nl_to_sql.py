@@ -48,7 +48,7 @@ Rules:
 
 def get_schema_context() -> str:
     from google.cloud import bigquery
-    client = bigquery.Client()
+    client = get_bq_client()
     lines = []
     for table_name in ALLOWED_TABLES:
         table_ref = f"{config.project_id}.dataset_marts.{table_name}"
@@ -88,7 +88,7 @@ def log_query(question: str, sql: str, tables: list) -> None:
     try:
         from google.cloud import bigquery
         from datetime import datetime
-        client = bigquery.Client()
+        client = get_bq_client()
         table_ref = f"{config.project_id}.dataset_raw.llm_audit_log"
         row = {
             "question": question,
@@ -117,7 +117,7 @@ def execute_sql(sql: str) -> list[dict] | str:
         if f'`{project}`' not in sql and project in sql:
             sql = sql.replace(project, f'`{project}`')
 
-        client = bigquery.Client()
+        client = get_bq_client()
         rows = list(client.query(sql).result())
         if not rows:
             return "Query returned 0 rows"

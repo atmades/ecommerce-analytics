@@ -5,9 +5,7 @@ import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
 from google.cloud import bigquery
-import sys
-sys.path.insert(0, '.')
-from ingestion.utils.mercadolibre_client import MercadoLibreClient
+import requests
 
 st.set_page_config(
     page_title="Price Gallery",
@@ -19,7 +17,7 @@ PROJECT = "notificationtest-2ce7b"
 
 @st.cache_data(ttl=3600)
 def load_price_ranking():
-    client = bigquery.Client()
+    client = get_bq_client()
     query = f"""
     SELECT
         product_id,
@@ -39,7 +37,7 @@ def load_price_ranking():
 
 @st.cache_data(ttl=3600)
 def load_product_history(product_id: str):
-    client = bigquery.Client()
+    client = get_bq_client()
     query = f"""
     SELECT price_version, valid_from, price_ars,
            price_delta_ars, price_change_pct, price_change_direction
@@ -52,11 +50,14 @@ def load_product_history(product_id: str):
 @st.cache_data(ttl=86400)
 def get_product_image(product_id: str) -> str | None:
     try:
-        client = MercadoLibreClient()
-        data = client.get(f"/products/{product_id}")
-        pictures = data.get("pictures", [])
-        if pictures:
-            return pictures[0]["url"]
+        response = requests.get(
+            f"https://api.mercadolibre.com/products/{product_id}",
+            timeout=10
+        )
+        if response.status_code == 200:
+            pictures = response.json().get("pictures", [])
+            if pictures:
+                return pictures[0]["url"]
     except Exception:
         pass
     return None
@@ -100,7 +101,7 @@ def waterfall_chart(df: pd.DataFrame, product_name: str):
 
 @st.cache_data(ttl=3600)
 def load_price_drops():
-    client = bigquery.Client()
+    client = get_bq_client()
     query = f"""
     SELECT
         product_id,

@@ -15,7 +15,7 @@ def log_query(
     tokens_used: int = 0,
 ) -> None:
     """Writes one audit record to BQ. Fire-and-forget — errors are logged but not raised."""
-    client = bigquery.Client()
+    client = get_bq_client()
     table_ref = f"{config.project_id}.dataset_raw.llm_audit_log"
 
     row = {

@@ -26,7 +26,7 @@ def get_schema_context() -> str:
     Returns a formatted string describing all allowed mart tables.
     Used as system prompt context for the LLM.
     """
-    client = bigquery.Client()
+    client = get_bq_client()
     lines = []
     lines.append(f"BigQuery project: {config.project_id}")
     lines.append(f"Dataset: dataset_marts")

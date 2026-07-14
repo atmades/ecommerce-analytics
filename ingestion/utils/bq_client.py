@@ -5,7 +5,21 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def get_bq_client() -> bigquery.Client:
+# def get_bq_client() -> bigquery.Client:
+#     return bigquery.Client()
+
+
+def get_bq_client():
+    if "gcp_credentials" in st.secrets:
+        from google.oauth2 import service_account
+        credentials = service_account.Credentials.from_service_account_info(
+            dict(st.secrets["gcp_credentials"]),
+            scopes=["https://www.googleapis.com/auth/cloud-platform"],
+        )
+        return bigquery.Client(
+            credentials=credentials,
+            project=st.secrets["gcp_credentials"]["project_id"]
+        )
     return bigquery.Client()
 
 

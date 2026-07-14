@@ -124,7 +124,7 @@ def save_to_gcs(records: list[dict]) -> str:
 
 def load_to_bq(gcs_uri: str, rows: int) -> None:
     """Загружаем JSONL из GCS в BigQuery."""
-    client = bigquery.Client()
+    client = get_bq_client()
     table_ref = f"{config.project_id}.{config.bq_dataset}.mercadolibre_products"
 
     schema = [

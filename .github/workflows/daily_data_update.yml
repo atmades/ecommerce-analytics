@@ -52,10 +52,11 @@ jobs:
           EOF
 
       - name: Ingest MercadoLibre API → GCS → BigQuery
+        continue-on-error: true
         env:
-          GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
-          GCS_BUCKET: ${{ secrets.GCS_BUCKET }}
-          BQ_DATASET: dataset_raw
+            GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+            GCS_BUCKET: ${{ secrets.GCS_BUCKET }}
+            BQ_DATASET: dataset_raw
         run: python ingestion/load_mercadolibre.py
 
       - name: dbt deps

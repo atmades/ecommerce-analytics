@@ -220,4 +220,20 @@ See [Architecture Decision Records](docs/decisions/) for details.
 
 ---
 
+## Live Demo
+
+| Resource | Link |
+|----------|------|
+| Streamlit Dashboard | [ecommerce-analytics.streamlit.app](https://ecommerce-analytics-cadvunukbous32harlxmvk.streamlit.app) |
+| Price Gallery | [/price_gallery](https://ecommerce-analytics-cadvunukbous32harlxmvk.streamlit.app/price_gallery) |
+| GitHub | [atmades/ecommerce-analytics](https://github.com/atmades/ecommerce-analytics) |
+
+**Dashboard features:**
+- MercadoLibre Argentina live price tracking (SCD Type 2)
+- Top products by price growth with waterfall charts
+- Product gallery with real images from MercadoLibre API
+- Daily auto-update via GitHub Actions (06:00 UTC)
+
+---
+
 *Built as a portfolio project demonstrating production-grade Data Engineering practices.*

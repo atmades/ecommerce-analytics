@@ -60,11 +60,36 @@ def load_product_history(product_id: str):
     """
     return client.query(query).to_dataframe()
 
+@st.cache_data(ttl=21600)
+def get_ml_token() -> str | None:
+    try:
+        if "mercadolibre" not in st.secrets:
+            return None
+        response = requests.post(
+            "https://api.mercadolibre.com/oauth/token",
+            data={
+                "grant_type": "client_credentials",
+                "client_id": st.secrets["mercadolibre"]["client_id"],
+                "client_secret": st.secrets["mercadolibre"]["client_secret"],
+            },
+            timeout=10
+        )
+        if response.status_code == 200:
+            return response.json()["access_token"]
+    except Exception:
+        pass
+    return None
+
 @st.cache_data(ttl=86400)
 def get_product_image(product_id: str) -> str | None:
     try:
+        token = get_ml_token()
+        if not token:
+            return None
+        headers = {"Authorization": f"Bearer {token}"}
         response = requests.get(
             f"https://api.mercadolibre.com/products/{product_id}",
+            headers=headers,
             timeout=10
         )
         if response.status_code == 200:

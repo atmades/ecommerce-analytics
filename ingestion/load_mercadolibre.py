@@ -175,8 +175,8 @@ def main():
     logger.info(f"Итого продуктов: {len(all_products)}")
 
     if not all_products:
-        logger.error("Нет данных для загрузки")
-        sys.exit(1)
+        logger.warning("Нет данных для загрузки — возможно API недоступен или все категории вернули 0 продуктов")
+        sys.exit(0)  # не падаем — dbt snapshot запустится с предыдущими данными
 
     gcs_uri = save_to_gcs(all_products)
     load_to_bq(gcs_uri, len(all_products))

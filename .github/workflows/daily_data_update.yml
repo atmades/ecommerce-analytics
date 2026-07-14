@@ -1,0 +1,83 @@
+name: Daily data update — MercadoLibre + dbt
+
+on:
+  schedule:
+    - cron: '0 6 * * *'  # 06:00 UTC every day
+  workflow_dispatch:      # allow manual trigger from GitHub UI
+
+jobs:
+  update:
+    name: Ingest + snapshot + marts
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install -e .
+          pip install "dbt-bigquery==1.8.0" "dbt-core==1.8.0" \
+            "google-cloud-bigquery>=3.0,<4.0" \
+            "google-cloud-storage>=2.4,<3.0" \
+            "google-cloud-secret-manager>=2.29.0"
+
+      - name: Write GCP service account key
+        run: echo '${{ secrets.GCP_SA_KEY }}' > /tmp/gcp-sa.json
+
+      - name: Set GOOGLE_APPLICATION_CREDENTIALS
+        run: echo "GOOGLE_APPLICATION_CREDENTIALS=/tmp/gcp-sa.json" >> $GITHUB_ENV
+
+      - name: Write dbt profiles.yml
+        run: |
+          mkdir -p ~/.dbt
+          cat > ~/.dbt/profiles.yml << EOF
+          ecommerce_analytics:
+            target: prod
+            outputs:
+              prod:
+                type: bigquery
+                method: service-account
+                project: ${{ secrets.GCP_PROJECT_ID }}
+                dataset: dataset_staging
+                keyfile: /tmp/gcp-sa.json
+                location: US
+                threads: 4
+                timeout_seconds: 300
+          EOF
+
+      - name: Ingest MercadoLibre API → GCS → BigQuery
+        env:
+          GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+          GCS_BUCKET: ${{ secrets.GCS_BUCKET }}
+          BQ_DATASET: dataset_raw
+        run: python ingestion/load_mercadolibre.py
+
+      - name: dbt deps
+        working-directory: dbt
+        env:
+          GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+        run: dbt deps
+
+      - name: dbt snapshot — SCD Type 2 price tracking
+        working-directory: dbt
+        env:
+          GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+        run: dbt snapshot --select snap_products
+
+      - name: dbt run — rebuild marts
+        working-directory: dbt
+        env:
+          GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+        run: dbt run --select marts
+
+      - name: dbt test — validate marts
+        working-directory: dbt
+        env:
+          GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+        run: dbt test --select marts

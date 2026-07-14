@@ -15,6 +15,19 @@ st.set_page_config(
 
 PROJECT = "notificationtest-2ce7b"
 
+def get_bq_client():
+    if "gcp_credentials" in st.secrets:
+        from google.oauth2 import service_account
+        credentials = service_account.Credentials.from_service_account_info(
+            dict(st.secrets["gcp_credentials"]),
+            scopes=["https://www.googleapis.com/auth/cloud-platform"],
+        )
+        return bigquery.Client(
+            credentials=credentials,
+            project=st.secrets["gcp_credentials"]["project_id"]
+        )
+    return bigquery.Client()
+
 @st.cache_data(ttl=3600)
 def load_price_ranking():
     client = get_bq_client()

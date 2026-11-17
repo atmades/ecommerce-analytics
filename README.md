@@ -2,7 +2,6 @@
 
 Production-grade data engineering platform combining historical e-commerce data (Olist Brazil) with live market data (MercadoLibre Argentina API).
 
-[![CI](https://github.com/atmades/ecommerce-analytics/actions/workflows/ci.yml/badge.svg)](https://github.com/atmades/ecommerce-analytics/actions/workflows/ci.yml)
 
 ---
 
